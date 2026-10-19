@@ -12,14 +12,6 @@ export const lessons: Lesson[] = [
       "lab1-1",
       "lab1-2"
     ],
-    "content": "## Why functional programming?\n\nIn **programmazione funzionale**, functions are **first-class**: they can be passed, returned, and stored like any value. Control flow relies heavily on **recursion** (ricorsione) instead of mutable loops. Many FP languages discourage **side effects** (effetti collaterali): prefer expressions over statements.\n\n## λ-Calculus (calcolo lambda)\n\nChurch's λ-calculus models computation with:\n- **Variables** and **constants**\n- **Abstraction** `λx.M` (in OCaml: `fun x -> M`)\n- **Application** `(M N)`\n\nEverything is a function. Currying is built in: `fun x y -> x + y` is really `fun x -> fun y -> x + y`.\n\n## OCaml functions & pattern matching\n\n```ocaml\nlet rec fact n =\n  if n <= 1 then 1 else n * fact (n - 1)\n\nlet rec fib = function\n  | 0 -> 0\n  | 1 -> 1\n  | n -> fib (n - 1) + fib (n - 2)\n```\n\n**Pattern matching** on constructors is the idiomatic way to destructure data.\n\n## Tail recursion (ricorsione di coda)\n\nA call is *tail* if it is the last operation. The compiler reuses stack frames:\n\n```ocaml\nlet fact n =\n  let rec aux acc = function\n    | 0 -> acc\n    | k -> aux (k * acc) (k - 1)\n  in aux 1 n\n```\n\n## Towers of Hanoi (Torre di Hanoi)\n\nMove `n` disks from source to target using auxiliary peg — classic divide-and-conquer recursion.",
-    "codeExamples": [
-      {
-        "title": "Tail-recursive sum",
-        "language": "ocaml",
-        "code": "let sum lst =\n  let rec go acc = function [] -> acc | h :: t -> go (acc + h) t in\n  go 0 lst"
-      }
-    ],
     "quiz": [
       {
         "id": "q1",
@@ -61,28 +53,54 @@ export const lessons: Lesson[] = [
     "exercises": [
       {
         "id": "ocaml-01-e1",
-        "title": "Warm-up: recursion",
-        "prompt": "Write `length : 'a list -> int` without using `List.length`.",
+        "title": "List length",
+        "prompt": "Write `length : 'a list -> int` without `List.length`.",
         "starterCode": "let length lst =\n  (* TODO *)\n",
         "language": "ocaml",
         "hints": [
-          "Empty list has length 0.",
-          "Non-empty: 1 + length tail."
+          "Empty → 0.",
+          "Peel head with pattern match."
         ],
         "solution": "let rec length = function [] -> 0 | _ :: t -> 1 + length t",
         "runInstructions": "# utop or ocaml\n# Paste your solution, or: ocamlc -o prog main.ml && ./prog"
       },
       {
         "id": "ocaml-01-e2",
-        "title": "Pattern matching",
-        "prompt": "Write `is_sorted : int list -> bool` checking non-decreasing order.",
-        "starterCode": "let is_sorted lst =\n  (* TODO *)\n",
+        "title": "Tail-recursive sum",
+        "prompt": "Write `sum : int list -> int` using tail recursion.",
+        "starterCode": "let sum lst =\n  (* TODO *)\n",
         "language": "ocaml",
         "hints": [
-          "Single element lists are sorted.",
-          "Compare adjacent pairs recursively."
+          "Inner `go acc` helper.",
+          "Last call must be `go`."
         ],
-        "solution": "let rec is_sorted = function\n  | [] | [_] -> true\n  | a :: (b :: _ as t) -> a <= b && is_sorted (b :: t)",
+        "solution": "let sum lst =\n  let rec go acc = function [] -> acc | h :: t -> go (acc + h) t in\n  go 0 lst",
+        "runInstructions": "# utop or ocaml\n# Paste your solution, or: ocamlc -o prog main.ml && ./prog"
+      },
+      {
+        "id": "ocaml-01-e3",
+        "title": "Hanoi moves",
+        "prompt": "Write `hanoi n : int` returning the number of moves for `n` disks (classic recurrence).",
+        "starterCode": "let hanoi n =\n  (* TODO *)\n",
+        "language": "ocaml",
+        "hints": [
+          "Base: 0 disks → 0 moves.",
+          "Recurrence: 2 * hanoi (n-1) + 1."
+        ],
+        "solution": "let rec hanoi = function 0 -> 0 | n -> 2 * hanoi (n - 1) + 1",
+        "runInstructions": "# utop or ocaml\n# Paste your solution, or: ocamlc -o prog main.ml && ./prog"
+      },
+      {
+        "id": "ocaml-01-e4",
+        "title": "Curried add",
+        "prompt": "Write `add : int -> int -> int` and use it as `List.map (add 10) [1;2;3]` → `[11;12;13]`.",
+        "starterCode": "let add x y = (* TODO *)\nlet bump10 = (* partial application *)\n",
+        "language": "ocaml",
+        "hints": [
+          "`add` is two-arg function.",
+          "`add 10` is `fun y -> add 10 y`."
+        ],
+        "solution": "let add x y = x + y\nlet bump10 = add 10",
         "runInstructions": "# utop or ocaml\n# Paste your solution, or: ocamlc -o prog main.ml && ./prog"
       }
     ]
@@ -97,14 +115,6 @@ export const lessons: Lesson[] = [
     "labRefs": [
       "lab1-3",
       "lab1-4"
-    ],
-    "content": "## Primitive types\n\n`bool`, `int`, `float`, `char`, `string` — plus structured types.\n\n## Lists (liste)\n\nThe workhorse type: `'a list` is either `[]` or `h :: t`.\n\n```ocaml\nlet rec length = function [] -> 0 | _ :: t -> 1 + length t\nlet rec append l1 l2 = match l1 with [] -> l2 | h :: t -> h :: append t l2\n```\n\n## Tuples, records, arrays\n\n- **Tuples**: `(1, \"a\")` — anonymous product types\n- **Records**: named fields `{ name = \"Be\"; number = 4 }`\n- **Arrays**: mutable `Array.make n x`\n\n## Variants (tipi algebrici)\n\n```ocaml\ntype temperature =\n  | Celsius of float\n  | Fahrenheit of float\n  | Kelvin of float\n\nlet to_celsius = function\n  | Celsius c -> c\n  | Fahrenheit f -> (f -. 32.) *. 5. /. 9.\n  | Kelvin k -> k -. 273.15\n```\n\nVariants + pattern matching replace many class hierarchies.",
-    "codeExamples": [
-      {
-        "title": "Variant for shapes",
-        "language": "ocaml",
-        "code": "type shape = Circle of float | Rect of float * float\nlet area = function\n  | Circle r -> Float.pi *. r *. r\n  | Rect (w, h) -> w *. h"
-      }
     ],
     "quiz": [
       {
@@ -135,28 +145,53 @@ export const lessons: Lesson[] = [
     "exercises": [
       {
         "id": "ocaml-02-e1",
-        "title": "Warm-up: recursion",
-        "prompt": "Write `length : 'a list -> int` without using `List.length`.",
-        "starterCode": "let length lst =\n  (* TODO *)\n",
+        "title": "Variant conversion",
+        "prompt": "Given `type temp = C of float | F of float`, write `to_celsius : temp -> float`.",
+        "starterCode": "type temp = C of float | F of float\nlet to_celsius = function\n  (* TODO *)\n",
         "language": "ocaml",
         "hints": [
-          "Empty list has length 0.",
-          "Non-empty: 1 + length tail."
+          "C stays.",
+          "F uses (f -. 32.) *. 5. /. 9."
         ],
-        "solution": "let rec length = function [] -> 0 | _ :: t -> 1 + length t",
+        "solution": "let to_celsius = function C c -> c | F f -> (f -. 32.) *. 5. /. 9.",
         "runInstructions": "# utop or ocaml\n# Paste your solution, or: ocamlc -o prog main.ml && ./prog"
       },
       {
         "id": "ocaml-02-e2",
-        "title": "Pattern matching",
-        "prompt": "Write `is_sorted : int list -> bool` checking non-decreasing order.",
-        "starterCode": "let is_sorted lst =\n  (* TODO *)\n",
+        "title": "Record update",
+        "prompt": "Define `{name; age}` person and `birthday p` incrementing age.",
+        "starterCode": "type person = { name : string; age : int }\nlet birthday p = (* TODO *)\n",
         "language": "ocaml",
         "hints": [
-          "Single element lists are sorted.",
-          "Compare adjacent pairs recursively."
+          "Use `{ p with age = p.age + 1 }`."
         ],
-        "solution": "let rec is_sorted = function\n  | [] | [_] -> true\n  | a :: (b :: _ as t) -> a <= b && is_sorted (b :: t)",
+        "solution": "let birthday p = { p with age = p.age + 1 }",
+        "runInstructions": "# utop or ocaml\n# Paste your solution, or: ocamlc -o prog main.ml && ./prog"
+      },
+      {
+        "id": "ocaml-02-e3",
+        "title": "List append",
+        "prompt": "Implement `append : 'a list -> 'a list -> 'a list` without `@`.",
+        "starterCode": "let rec append l1 l2 =\n  (* TODO *)\n",
+        "language": "ocaml",
+        "hints": [
+          "[] ++ l2 = l2.",
+          "Head preserved in order."
+        ],
+        "solution": "let rec append l1 l2 = match l1 with [] -> l2 | h :: t -> h :: append t l2",
+        "runInstructions": "# utop or ocaml\n# Paste your solution, or: ocamlc -o prog main.ml && ./prog"
+      },
+      {
+        "id": "ocaml-02-e4",
+        "title": "Option safe head",
+        "prompt": "Write `head : 'a list -> 'a option`.",
+        "starterCode": "let head = function\n  (* TODO *)\n",
+        "language": "ocaml",
+        "hints": [
+          "[] → None.",
+          "h :: _ → Some h."
+        ],
+        "solution": "let head = function [] -> None | h :: _ -> Some h",
         "runInstructions": "# utop or ocaml\n# Paste your solution, or: ocamlc -o prog main.ml && ./prog"
       }
     ]
@@ -171,14 +206,6 @@ export const lessons: Lesson[] = [
     "labRefs": [
       "lab1-7",
       "lab2-2"
-    ],
-    "content": "## Module system (sistema dei moduli)\n\nOCaml separates **implementation** from **interface**:\n\n```ocaml\nmodule StackImpl = struct\n  type 'a t = 'a list\n  let empty = []\n  let push x s = x :: s\n  let pop = function [] -> None | h :: t -> Some (h, t)\nend\n\nmodule type STACK = sig\n  type 'a t\n  val empty : 'a t\n  val push : 'a -> 'a t -> 'a t\n  val pop : 'a t -> ('a * 'a t) option\nend\n```\n\n## Signatures & abstraction\n\nA **signature** (`sig ... end`) hides representation details — clients cannot construct invalid stacks.\n\n## Functors\n\nFunctors are modules parameterized by other modules:\n\n```ocaml\nmodule MakeStack (Elt : sig type t end) = struct\n  type t = Elt.t list\n  let empty = []\n  let push x s = x :: s\nend\n```\n\nUse functors to reuse algorithms (e.g. Polish calculator over any stack implementation).",
-    "codeExamples": [
-      {
-        "title": "Functor sketch",
-        "language": "ocaml",
-        "code": "module Id = struct type t = int let zero = 0 end\nmodule Add = functor (R : sig type t val zero : t end) -> struct\n  let add x y = x + y  (* exam: generalize with R's operations *)\nend"
-      }
     ],
     "quiz": [
       {
@@ -197,28 +224,51 @@ export const lessons: Lesson[] = [
     "exercises": [
       {
         "id": "ocaml-03-e1",
-        "title": "Warm-up: recursion",
-        "prompt": "Write `length : 'a list -> int` without using `List.length`.",
-        "starterCode": "let length lst =\n  (* TODO *)\n",
+        "title": "Stack signature",
+        "prompt": "Fill in `STACK` signature for int stack with push/pop.",
+        "starterCode": "module type STACK = sig\n  type 'a t\n  val empty : 'a t\n  val push : 'a -> 'a t -> 'a t\n  val pop : 'a t -> ('a * 'a t) option\nend\n",
         "language": "ocaml",
         "hints": [
-          "Empty list has length 0.",
-          "Non-empty: 1 + length tail."
+          "Already a template — implement module below."
         ],
-        "solution": "let rec length = function [] -> 0 | _ :: t -> 1 + length t",
+        "solution": "module IntStack = struct\n  type 'a t = 'a list\n  let empty = []\n  let push x s = x :: s\n  let pop = function [] -> None | h :: t -> Some (h, t)\nend",
         "runInstructions": "# utop or ocaml\n# Paste your solution, or: ocamlc -o prog main.ml && ./prog"
       },
       {
         "id": "ocaml-03-e2",
-        "title": "Pattern matching",
-        "prompt": "Write `is_sorted : int list -> bool` checking non-decreasing order.",
-        "starterCode": "let is_sorted lst =\n  (* TODO *)\n",
+        "title": "Abstract type",
+        "prompt": "Why can't clients of `STACK` build `1 :: empty` if `t` is abstract?",
+        "starterCode": "(* Explain in comment, then implement MakeListStack *)\n",
         "language": "ocaml",
         "hints": [
-          "Single element lists are sorted.",
-          "Compare adjacent pairs recursively."
+          "Representation hidden outside module."
         ],
-        "solution": "let rec is_sorted = function\n  | [] | [_] -> true\n  | a :: (b :: _ as t) -> a <= b && is_sorted (b :: t)",
+        "solution": "(* Clients only use push/pop — cannot pattern-match hidden list *)",
+        "runInstructions": "# utop or ocaml\n# Paste your solution, or: ocamlc -o prog main.ml && ./prog"
+      },
+      {
+        "id": "ocaml-03-e3",
+        "title": "Functor map",
+        "prompt": "Sketch `MakeMap (Ord : ORD)` storing `'a list` per key — just `empty` and `add`.",
+        "starterCode": "module type ORD = sig type t val compare : t -> t -> int end\nmodule MakeMap (Ord : ORD) = struct\n  (* TODO *)\nend\n",
+        "language": "ocaml",
+        "hints": [
+          "Use association list or Map if allowed.",
+          "Exam: show functor header + type."
+        ],
+        "solution": "module MakeMap (Ord : ORD) = struct\n  type 'a t = (Ord.t * 'a) list\n  let empty = []\n  let add k v m = (k, v) :: m\nend",
+        "runInstructions": "# utop or ocaml\n# Paste your solution, or: ocamlc -o prog main.ml && ./prog"
+      },
+      {
+        "id": "ocaml-03-e4",
+        "title": "Include vs open",
+        "prompt": "Write two lines: `include` Stack in Calculator module vs `open Stack`. Comment trade-off.",
+        "starterCode": "(* TODO *)\n",
+        "language": "ocaml",
+        "hints": [
+          "include merges module type into current scope."
+        ],
+        "solution": "(* include adds definitions; open only brings names unqualified *)",
         "runInstructions": "# utop or ocaml\n# Paste your solution, or: ocamlc -o prog main.ml && ./prog"
       }
     ]
@@ -232,14 +282,6 @@ export const lessons: Lesson[] = [
     "summary": "Parametric polymorphism, type inference, weak typing, and polymorphic ADTs.",
     "labRefs": [
       "lab2-5"
-    ],
-    "content": "## Polymorphism taxonomy\n\n- **Parametric**: generic over types (`'a list`)\n- **Ad hoc**: overloading (not native in core OCaml)\n- **Subtype**: objects/classes (OCaml has a separate object system)\n\n## Type inference\n\nOCaml infers principal types. **Weak type variables** (`'a`) appear when values are mutable or used heterogeneously.\n\n## Polymorphic ADT example: Stack\n\n```ocaml\nmodule PolyStack = struct\n  type 'a t = 'a list\n  let empty = []\n  let push x s = x :: s\n  let pop = function [] -> None | h :: t -> Some (h, t)\nend\n```\n\n## Sorting polymorphically\n\nQuicksort on lists works for any ordered type:\n\n```ocaml\nlet rec quicksort = function\n  | [] -> []\n  | pivot :: rest ->\n      let left, right = List.partition (fun x -> x <= pivot) rest in\n      quicksort left @ pivot :: quicksort right\n```",
-    "codeExamples": [
-      {
-        "title": "Polymorphic map",
-        "language": "ocaml",
-        "code": "let rec map f = function [] -> [] | h :: t -> f h :: map f t"
-      }
     ],
     "quiz": [
       {
@@ -258,28 +300,51 @@ export const lessons: Lesson[] = [
     "exercises": [
       {
         "id": "ocaml-04-e1",
-        "title": "Warm-up: recursion",
-        "prompt": "Write `length : 'a list -> int` without using `List.length`.",
-        "starterCode": "let length lst =\n  (* TODO *)\n",
+        "title": "Polymorphic id",
+        "prompt": "Give the principal type of `let id x = x` and `let pair x y = (x, y)`.",
+        "starterCode": "let id x = x\nlet pair x y = (x, y)\n",
         "language": "ocaml",
         "hints": [
-          "Empty list has length 0.",
-          "Non-empty: 1 + length tail."
+          "Generalize with 'a, 'b."
         ],
-        "solution": "let rec length = function [] -> 0 | _ :: t -> 1 + length t",
+        "solution": "(* id : 'a -> 'a ; pair : 'a -> 'b -> 'a * 'b *)",
         "runInstructions": "# utop or ocaml\n# Paste your solution, or: ocamlc -o prog main.ml && ./prog"
       },
       {
         "id": "ocaml-04-e2",
-        "title": "Pattern matching",
-        "prompt": "Write `is_sorted : int list -> bool` checking non-decreasing order.",
-        "starterCode": "let is_sorted lst =\n  (* TODO *)\n",
+        "title": "Polymorphic queue",
+        "prompt": "Type `'a queue` as `{ front; rear }` lists — write `enqueue` and `dequeue`.",
+        "starterCode": "type 'a queue = { front : 'a list; rear : 'a list }\nlet empty = { front = []; rear = [] }\n",
         "language": "ocaml",
         "hints": [
-          "Single element lists are sorted.",
-          "Compare adjacent pairs recursively."
+          "Amortized: push rear, pop front.",
+          "Reverse front when empty."
         ],
-        "solution": "let rec is_sorted = function\n  | [] | [_] -> true\n  | a :: (b :: _ as t) -> a <= b && is_sorted (b :: t)",
+        "solution": "let enqueue x q = { q with rear = x :: q.rear }\nlet dequeue q = match q.front with h :: t -> Some (h, { q with front = t }) | [] -> (match List.rev q.rear with h :: t -> Some (h, { front = t; rear = [] }) | [] -> None)",
+        "runInstructions": "# utop or ocaml\n# Paste your solution, or: ocamlc -o prog main.ml && ./prog"
+      },
+      {
+        "id": "ocaml-04-e3",
+        "title": "Weak typing trap",
+        "prompt": "Why might `let v = ref []` break when you `v := [1]; v := [true]`?",
+        "starterCode": "(* answer in comment *)\n",
+        "language": "ocaml",
+        "hints": [
+          "First use fixes 'a ref for monomorphism."
+        ],
+        "solution": "(* 'a becomes int list after first assignment; bool list fails *)",
+        "runInstructions": "# utop or ocaml\n# Paste your solution, or: ocamlc -o prog main.ml && ./prog"
+      },
+      {
+        "id": "ocaml-04-e4",
+        "title": "Polymorphic map",
+        "prompt": "Write `map : ('a -> 'b) -> 'a list -> 'b list`.",
+        "starterCode": "let rec map f = function\n  (* TODO *)\n",
+        "language": "ocaml",
+        "hints": [
+          "Same structure as length."
+        ],
+        "solution": "let rec map f = function [] -> [] | h :: t -> f h :: map f t",
         "runInstructions": "# utop or ocaml\n# Paste your solution, or: ocamlc -o prog main.ml && ./prog"
       }
     ]
@@ -294,14 +359,6 @@ export const lessons: Lesson[] = [
     "labRefs": [
       "lab1-5",
       "lab1-6"
-    ],
-    "content": "## Currying & partial application\n\n`add` has type `int -> int -> int`. Supply one argument to get a function waiting for the rest:\n\n```ocaml\nlet add x y = x + y\nlet inc = add 1        (* int -> int *)\nList.map (add 3) [1;2;3]  (* [4;5;6] *)\n```\n\n## Map, filter, fold\n\n| Name | Type idea | Purpose |\n|------|-----------|---------|\n| `map` | `('a -> 'b) -> 'a list -> 'b list` | transform each element |\n| `filter` | `('a -> bool) -> 'a list -> 'a list` | keep satisfying elements |\n| `fold_left` | `('b -> 'a -> 'b) -> 'b -> 'a list -> 'b` | accumulate left-to-right |\n\n```ocaml\nList.fold_left (+) 0 [1;2;3]  (* 6 *)\nList.filter (fun x -> x mod 2 = 0) [1..10]\n```\n\nImplement `map` and `fold` yourself to internalize exam patterns.",
-    "codeExamples": [
-      {
-        "title": "Fold from scratch",
-        "language": "ocaml",
-        "code": "let rec fold_left f acc = function\n  | [] -> acc\n  | h :: t -> fold_left f (f acc h) t"
-      }
     ],
     "quiz": [
       {
@@ -320,28 +377,51 @@ export const lessons: Lesson[] = [
     "exercises": [
       {
         "id": "ocaml-05-e1",
-        "title": "Warm-up: recursion",
-        "prompt": "Write `length : 'a list -> int` without using `List.length`.",
-        "starterCode": "let length lst =\n  (* TODO *)\n",
+        "title": "fold_left sum",
+        "prompt": "Compute sum with `List.fold_left` without `+` in recursive call on list spine.",
+        "starterCode": "let sum = List.fold_left (fun acc x -> acc + x) 0\n",
         "language": "ocaml",
         "hints": [
-          "Empty list has length 0.",
-          "Non-empty: 1 + length tail."
+          "Starter given — predict `[1;2;3]`."
         ],
-        "solution": "let rec length = function [] -> 0 | _ :: t -> 1 + length t",
+        "solution": "let sum = List.fold_left (fun acc x -> acc + x) 0",
         "runInstructions": "# utop or ocaml\n# Paste your solution, or: ocamlc -o prog main.ml && ./prog"
       },
       {
         "id": "ocaml-05-e2",
-        "title": "Pattern matching",
-        "prompt": "Write `is_sorted : int list -> bool` checking non-decreasing order.",
-        "starterCode": "let is_sorted lst =\n  (* TODO *)\n",
+        "title": "filter positive",
+        "prompt": "Write `positive : int list -> int list` with `filter` or recursion.",
+        "starterCode": "let positive lst = (* TODO *)\n",
         "language": "ocaml",
         "hints": [
-          "Single element lists are sorted.",
-          "Compare adjacent pairs recursively."
+          "Keep x when x > 0."
         ],
-        "solution": "let rec is_sorted = function\n  | [] | [_] -> true\n  | a :: (b :: _ as t) -> a <= b && is_sorted (b :: t)",
+        "solution": "let positive = List.filter (fun x -> x > 0)",
+        "runInstructions": "# utop or ocaml\n# Paste your solution, or: ocamlc -o prog main.ml && ./prog"
+      },
+      {
+        "id": "ocaml-05-e3",
+        "title": "Compose",
+        "prompt": "Write `compose f g x = f (g x)` and use on `List.map (compose ((+) 1) (( * ) 2)) [0;1;2]`.",
+        "starterCode": "let compose f g x = (* TODO *)\n",
+        "language": "ocaml",
+        "hints": [
+          "Order: g then f."
+        ],
+        "solution": "let compose f g x = f (g x)",
+        "runInstructions": "# utop or ocaml\n# Paste your solution, or: ocamlc -o prog main.ml && ./prog"
+      },
+      {
+        "id": "ocaml-05-e4",
+        "title": "fold_right vs left",
+        "prompt": "Explain difference in one comment; eval `fold_left (-) 0 [1;2;3]` vs `fold_right (-) [1;2;3] 0`.",
+        "starterCode": "(* TODO *)\n",
+        "language": "ocaml",
+        "hints": [
+          "Left: (((0-1)-2)-3).",
+          "Right: (1-(2-(3-0)))."
+        ],
+        "solution": "(* -6 vs 2 *)",
         "runInstructions": "# utop or ocaml\n# Paste your solution, or: ocamlc -o prog main.ml && ./prog"
       }
     ]
@@ -355,14 +435,6 @@ export const lessons: Lesson[] = [
     "summary": "Graph ADTs and depth-first search (ricerca in profondità) on directed graphs.",
     "labRefs": [
       "lab2-1"
-    ],
-    "content": "## Graphs for exam-style problems\n\nRepresent a **directed graph** as adjacency lists or a record with nodes and edges.\n\n```ocaml\ntype 'a graph = {\n  nodes : 'a list;\n  edges : ('a * 'a) list;\n}\n```\n\n## DFS (Depth First Search)\n\nDFS explores as deep as possible before backtracking — use a **visited** set and recursion or an explicit stack:\n\n```ocaml\nlet neighbors g v =\n  List.filter_map (fun (a, b) -> if a = v then Some b else None) g.edges\n\nlet rec dfs g v visited =\n  if List.mem v visited then visited\n  else\n    let visited = v :: visited in\n    List.fold_left (fun acc u -> dfs g u acc) visited (neighbors g v)\n```\n\nSocial networks (Lab 2) are graphs: nodes = people, edges = relationships.",
-    "codeExamples": [
-      {
-        "title": "DFS reachability",
-        "language": "ocaml",
-        "code": "let reachable g start target =\n  let rec visit seen v =\n    if v = target then true\n    else if List.mem v seen then false\n    else List.exists (visit (v :: seen)) (neighbors g v)\n  in visit [] start"
-      }
     ],
     "quiz": [
       {
@@ -381,28 +453,53 @@ export const lessons: Lesson[] = [
     "exercises": [
       {
         "id": "ocaml-06-e1",
-        "title": "Warm-up: recursion",
-        "prompt": "Write `length : 'a list -> int` without using `List.length`.",
-        "starterCode": "let length lst =\n  (* TODO *)\n",
+        "title": "Neighbors",
+        "prompt": "Given adjacency `('a * 'a) list`, write `neighbors g v`.",
+        "starterCode": "let neighbors edges v =\n  (* TODO *)\n",
         "language": "ocaml",
         "hints": [
-          "Empty list has length 0.",
-          "Non-empty: 1 + length tail."
+          "Filter pairs where fst = v.",
+          "Map snd."
         ],
-        "solution": "let rec length = function [] -> 0 | _ :: t -> 1 + length t",
+        "solution": "let neighbors edges v = List.map snd (List.filter (fun (a, _) -> a = v) edges)",
         "runInstructions": "# utop or ocaml\n# Paste your solution, or: ocamlc -o prog main.ml && ./prog"
       },
       {
         "id": "ocaml-06-e2",
-        "title": "Pattern matching",
-        "prompt": "Write `is_sorted : int list -> bool` checking non-decreasing order.",
-        "starterCode": "let is_sorted lst =\n  (* TODO *)\n",
+        "title": "DFS reachability",
+        "prompt": "Write `reachable edges start target` returning bool.",
+        "starterCode": "let rec reachable edges start target =\n  (* TODO *)\n",
         "language": "ocaml",
         "hints": [
-          "Single element lists are sorted.",
-          "Compare adjacent pairs recursively."
+          "Maintain visited list.",
+          "Base: start = target."
         ],
-        "solution": "let rec is_sorted = function\n  | [] | [_] -> true\n  | a :: (b :: _ as t) -> a <= b && is_sorted (b :: t)",
+        "solution": "let rec visit seen v =\n  if v = target then true\n  else if List.mem v seen then false\n  else List.exists (fun n -> visit (v :: seen) n) (neighbors edges v)\nin visit [] start",
+        "runInstructions": "# utop or ocaml\n# Paste your solution, or: ocamlc -o prog main.ml && ./prog"
+      },
+      {
+        "id": "ocaml-06-e3",
+        "title": "BFS sketch",
+        "prompt": "Write `bfs` using a queue type (list as queue OK) for shortest path length.",
+        "starterCode": "let bfs edges start target = (* TODO: return int option depth *)\n",
+        "language": "ocaml",
+        "hints": [
+          "Layer-by-layer.",
+          "Track distance in queue entries."
+        ],
+        "solution": "(* exam sketch: queue of (node, dist) *)",
+        "runInstructions": "# utop or ocaml\n# Paste your solution, or: ocamlc -o prog main.ml && ./prog"
+      },
+      {
+        "id": "ocaml-06-e4",
+        "title": "Cycle detect",
+        "prompt": "Return true if directed graph has a cycle (DFS with recursion stack).",
+        "starterCode": "let has_cycle edges = (* TODO *)\n",
+        "language": "ocaml",
+        "hints": [
+          "Back edge in DFS."
+        ],
+        "solution": "(* standard three-color DFS *)",
         "runInstructions": "# utop or ocaml\n# Paste your solution, or: ocamlc -o prog main.ml && ./prog"
       }
     ]
@@ -417,14 +514,6 @@ export const lessons: Lesson[] = [
     "labRefs": [
       "lab3-1",
       "lab3-2"
-    ],
-    "content": "## Erlang data model\n\n- **Numbers** and **atoms** (`ok`, `error`, `hello`)\n- **Tuples** `{ok, 42}`, **lists** `[1,2,3|Tail]`\n- **Variables** start with uppercase; **= is pattern matching**, not assignment\n\n```erlang\nfactorial(0) -> 1;\nfactorial(N) when N > 0 -> N * factorial(N - 1).\n```\n\n## Guards\n\nGuard sequences (`when`) refine clauses without nested `if`.\n\n## Higher-order list processing\n\n`lists:map/2`, `lists:filter/2`, `lists:foldl/3` mirror ML. **List comprehensions**:\n\n```erlang\n[X*X || X <- Lists, X rem 2 =:= 0].\n```",
-    "codeExamples": [
-      {
-        "title": "List comprehension",
-        "language": "erlang",
-        "code": "squared_evens(Ls) -> [X*X || X <- Ls, is_integer(X), X rem 2 =:= 0]."
-      }
     ],
     "quiz": [
       {
@@ -455,28 +544,51 @@ export const lessons: Lesson[] = [
     "exercises": [
       {
         "id": "erlang-07-e1",
-        "title": "List processing",
-        "prompt": "Implement `sum/1` using recursion (no lists:sum).",
-        "starterCode": "sum(L) ->\n  % TODO\n.",
+        "title": "Sum list",
+        "prompt": "Implement `sum/1` recursively.",
+        "starterCode": "sum([]) -> 0;\nsum([H|T]) -> (* TODO *).\n",
         "language": "erlang",
         "hints": [
-          "Base case empty list.",
-          "Head + sum of tail."
+          "Classic list recursion."
         ],
         "solution": "sum([]) -> 0;\nsum([H|T]) -> H + sum(T).",
         "runInstructions": "# erl\n# c(module).\n# module:function()."
       },
       {
         "id": "erlang-07-e2",
-        "title": "Guards",
-        "prompt": "Write `classify/1` returning atom positive, negative, or zero.",
-        "starterCode": "classify(N) when is_integer(N) ->\n  % TODO\n.",
+        "title": "Comprehension",
+        "prompt": "Write `doubled_evens(Ls)` using list comprehension.",
+        "starterCode": "doubled_evens(Ls) ->\n  (* TODO *).\n",
         "language": "erlang",
         "hints": [
-          "Use separate clauses with guards.",
-          "0 is its own case."
+          "`[F(X) || X <- Ls, Guard]`."
         ],
-        "solution": "classify(N) when N > 0 -> positive;\nclassify(N) when N < 0 -> negative;\nclassify(0) -> zero.",
+        "solution": "doubled_evens(Ls) -> [2*X || X <- Ls, is_integer(X), X rem 2 =:= 0].",
+        "runInstructions": "# erl\n# c(module).\n# module:function()."
+      },
+      {
+        "id": "erlang-07-e3",
+        "title": "Pattern match",
+        "prompt": "Function `grade/1` mapping 90+ → excellent, 70+ → good, _ → study.",
+        "starterCode": "grade(Score) when is_integer(Score) ->\n  (* TODO *).\n",
+        "language": "erlang",
+        "hints": [
+          "Separate clauses + guards."
+        ],
+        "solution": "grade(S) when S >= 90 -> excellent;\ngrade(S) when S >= 70 -> good;\ngrade(_) -> study.",
+        "runInstructions": "# erl\n# c(module).\n# module:function()."
+      },
+      {
+        "id": "erlang-07-e4",
+        "title": "Atoms vs tuples",
+        "prompt": "Predict: `{ok, 42} = {ok, X}.` and `{error, bad} = {ok, X}.` outcomes.",
+        "starterCode": "(* comment answers *)\n",
+        "language": "erlang",
+        "hints": [
+          "Match must succeed.",
+          "Second throws badmatch."
+        ],
+        "solution": "(* X=42 ; second raises badmatch *)",
         "runInstructions": "# erl\n# c(module).\n# module:function()."
       }
     ]
@@ -491,14 +603,6 @@ export const lessons: Lesson[] = [
     "labRefs": [
       "lab3-3",
       "lab3-4"
-    ],
-    "content": "## Actor model\n\nNo shared mutable state: processes communicate by **asynchronous messages**.\n\n```erlang\nPid = spawn(fun() -> receive {hello, From} -> From ! {reply, hi} end end),\nPid ! {hello, self()},\nreceive {reply, Msg} -> io:format(\"~p~n\", [Msg]) end.\n```\n\n## spawn / send / receive\n\n- `spawn(Fun)` creates a process\n- `Pid ! Msg` sends asynchronously\n- `receive ... end` blocks until a matching message\n\n## Registered names\n\n`register(Name, Pid)` gives stable aliases — used in echo servers and IRC-lite.",
-    "codeExamples": [
-      {
-        "title": "Spawn and reply",
-        "language": "erlang",
-        "code": "loop() ->\n  receive\n    {ping, From} -> From ! pong, loop();\n    stop -> ok\n  end."
-      }
     ],
     "quiz": [
       {
@@ -517,28 +621,52 @@ export const lessons: Lesson[] = [
     "exercises": [
       {
         "id": "erlang-08-e1",
-        "title": "List processing",
-        "prompt": "Implement `sum/1` using recursion (no lists:sum).",
-        "starterCode": "sum(L) ->\n  % TODO\n.",
+        "title": "Echo process",
+        "prompt": "Write `echo_loop/0` replying `{ok, Msg}` to `{echo, From, Msg}`.",
+        "starterCode": "echo_loop() ->\n  receive\n    (* TODO *)\n  end.\n",
         "language": "erlang",
         "hints": [
-          "Base case empty list.",
-          "Head + sum of tail."
+          "Reply then loop.",
+          "From ! {ok, Msg}."
         ],
-        "solution": "sum([]) -> 0;\nsum([H|T]) -> H + sum(T).",
+        "solution": "echo_loop() ->\n  receive\n    {echo, From, Msg} -> From ! {ok, Msg}, echo_loop()\n  end.",
         "runInstructions": "# erl\n# c(module).\n# module:function()."
       },
       {
         "id": "erlang-08-e2",
-        "title": "Guards",
-        "prompt": "Write `classify/1` returning atom positive, negative, or zero.",
-        "starterCode": "classify(N) when is_integer(N) ->\n  % TODO\n.",
+        "title": "Spawn",
+        "prompt": "Spawn echo and send one message from shell (comment steps).",
+        "starterCode": "(* TODO: shell commands as comments *)\n",
         "language": "erlang",
         "hints": [
-          "Use separate clauses with guards.",
-          "0 is its own case."
+          "Pid = spawn(fun echo_loop/0).",
+          "Pid ! {echo, self(), hi}."
         ],
-        "solution": "classify(N) when N > 0 -> positive;\nclassify(N) when N < 0 -> negative;\nclassify(0) -> zero.",
+        "solution": "(* Pid=spawn(...), Pid!{echo,self(),hi}, receive {ok,M}->M end. *)",
+        "runInstructions": "# erl\n# c(module).\n# module:function()."
+      },
+      {
+        "id": "erlang-08-e3",
+        "title": "Register",
+        "prompt": "Register server as `my_echo` and send via atom.",
+        "starterCode": "register(my_echo, spawn(fun echo_loop/0)).\n",
+        "language": "erlang",
+        "hints": [
+          "Use name instead of Pid."
+        ],
+        "solution": "my_echo ! {echo, self(), hello}.",
+        "runInstructions": "# erl\n# c(module).\n# module:function()."
+      },
+      {
+        "id": "erlang-08-e4",
+        "title": "Compare OCaml",
+        "prompt": "In one comment: Erlang process vs OCaml thread — message passing vs shared memory.",
+        "starterCode": "(* TODO *)\n",
+        "language": "erlang",
+        "hints": [
+          "Erlang: no shared mutable state between processes."
+        ],
+        "solution": "(* Erlang isolates heap per process; sync via messages *)",
         "runInstructions": "# erl\n# c(module).\n# module:function()."
       }
     ]
@@ -553,14 +681,6 @@ export const lessons: Lesson[] = [
     "labRefs": [
       "lab3-4",
       "lab3-5"
-    ],
-    "content": "## Links vs monitors\n\n- **link/1**: bidirectional — if one dies, the other gets an exit signal\n- **monitor/2**: unidirectional notification (`{'DOWN', Ref, process, Pid, Reason}`)\n\n## Trapping exits\n\n`process_flag(trap_exit, true)` lets a process convert crashes into messages instead of dying immediately — basis of supervisors (master/slave labs).\n\n## Error handling pattern\n\nLet linked workers fail; master traps exits, logs, and **restarts** the worker (see Lab 4 master-slave).",
-    "codeExamples": [
-      {
-        "title": "Monitor",
-        "language": "erlang",
-        "code": "Ref = monitor(process, Pid),\nreceive\n  {'DOWN', Ref, process, Pid, Reason} -> io:format(\"~p~n\", [Reason])\nend."
-      }
     ],
     "quiz": [
       {
@@ -579,28 +699,50 @@ export const lessons: Lesson[] = [
     "exercises": [
       {
         "id": "erlang-09-e1",
-        "title": "List processing",
-        "prompt": "Implement `sum/1` using recursion (no lists:sum).",
-        "starterCode": "sum(L) ->\n  % TODO\n.",
+        "title": "Link",
+        "prompt": "Spawn worker linked to self; worker exits with `exit(normal)` — what does parent receive?",
+        "starterCode": "(* TODO comment *)\n",
         "language": "erlang",
         "hints": [
-          "Base case empty list.",
-          "Head + sum of tail."
+          "Link is bidirectional signal."
         ],
-        "solution": "sum([]) -> 0;\nsum([H|T]) -> H + sum(T).",
+        "solution": "(* {'EXIT', Pid, normal} unless trapping *)",
         "runInstructions": "# erl\n# c(module).\n# module:function()."
       },
       {
         "id": "erlang-09-e2",
-        "title": "Guards",
-        "prompt": "Write `classify/1` returning atom positive, negative, or zero.",
-        "starterCode": "classify(N) when is_integer(N) ->\n  % TODO\n.",
+        "title": "trap_exit",
+        "prompt": "Set `trap_exit true` and handle `{'EXIT', Pid, Reason}` in loop.",
+        "starterCode": "master_loop() ->\n  process_flag(trap_exit, true),\n  receive\n    (* TODO *)\n  end.\n",
         "language": "erlang",
         "hints": [
-          "Use separate clauses with guards.",
-          "0 is its own case."
+          "Convert exit to message."
         ],
-        "solution": "classify(N) when N > 0 -> positive;\nclassify(N) when N < 0 -> negative;\nclassify(0) -> zero.",
+        "solution": "master_loop() ->\n  process_flag(trap_exit, true),\n  receive\n    {'EXIT', P, R} -> io:format(\"~p ~p~n\", [P, R]), master_loop()\n  end.",
+        "runInstructions": "# erl\n# c(module).\n# module:function()."
+      },
+      {
+        "id": "erlang-09-e3",
+        "title": "Monitor",
+        "prompt": "Monitor a pid and print DOWN reason.",
+        "starterCode": "watch(Pid) ->\n  Ref = monitor(process, Pid),\n  receive\n    (* TODO *)\n  end.\n",
+        "language": "erlang",
+        "hints": [
+          "{'DOWN', Ref, process, Pid, Reason}."
+        ],
+        "solution": "watch(Pid) ->\n  Ref = monitor(process, Pid),\n  receive {'DOWN', Ref, process, Pid, R} -> io:format(\"~p~n\", [R]) end.",
+        "runInstructions": "# erl\n# c(module).\n# module:function()."
+      },
+      {
+        "id": "erlang-09-e4",
+        "title": "Restart sketch",
+        "prompt": "Pseudocode master restarting worker on `{worker, crash}`.",
+        "starterCode": "(* TODO *)\n",
+        "language": "erlang",
+        "hints": [
+          "Spawn new worker on DOWN."
+        ],
+        "solution": "(* on DOWN -> spawn new worker, link again *)",
         "runInstructions": "# erl\n# c(module).\n# module:function()."
       }
     ]
@@ -615,14 +757,6 @@ export const lessons: Lesson[] = [
     "labRefs": [
       "lab4-2",
       "lab4-3"
-    ],
-    "content": "## Distributed Erlang\n\nNodes connect with the same **cookie**:\n\n```erlang\nnet_kernel:start([mynode@localhost]),\nrpc:call(othernode@host, module, function, [Args]).\n```\n\n## Remote spawn\n\n`spawn(Node, Fun)` starts work elsewhere — used in replicated key-value stores (Lab 4).\n\n## Design cautions\n\nUpdates must reach all replicas; lookups can hit any replica; network partitions require careful testing.",
-    "codeExamples": [
-      {
-        "title": "RPC call",
-        "language": "erlang",
-        "code": "rpc:call('node2@host', erlang, list_to_atom, [\"hello\"])."
-      }
     ],
     "quiz": [
       {
@@ -641,28 +775,51 @@ export const lessons: Lesson[] = [
     "exercises": [
       {
         "id": "erlang-10-e1",
-        "title": "List processing",
-        "prompt": "Implement `sum/1` using recursion (no lists:sum).",
-        "starterCode": "sum(L) ->\n  % TODO\n.",
+        "title": "Cookie",
+        "prompt": "Why must nodes share cookie? One sentence.",
+        "starterCode": "(* TODO *)\n",
         "language": "erlang",
         "hints": [
-          "Base case empty list.",
-          "Head + sum of tail."
+          "Cluster security."
         ],
-        "solution": "sum([]) -> 0;\nsum([H|T]) -> H + sum(T).",
+        "solution": "(* Prevents random nodes joining the cluster *)",
         "runInstructions": "# erl\n# c(module).\n# module:function()."
       },
       {
         "id": "erlang-10-e2",
-        "title": "Guards",
-        "prompt": "Write `classify/1` returning atom positive, negative, or zero.",
-        "starterCode": "classify(N) when is_integer(N) ->\n  % TODO\n.",
+        "title": "rpc:call",
+        "prompt": "Write rpc call to `lists:reverse([1,2,3])` on `node2@host`.",
+        "starterCode": "(* TODO *)\n",
         "language": "erlang",
         "hints": [
-          "Use separate clauses with guards.",
-          "0 is its own case."
+          "rpc:call(Node, Mod, Fun, Args)."
         ],
-        "solution": "classify(N) when N > 0 -> positive;\nclassify(N) when N < 0 -> negative;\nclassify(0) -> zero.",
+        "solution": "rpc:call('node2@host', lists, reverse, [[1,2,3]]).",
+        "runInstructions": "# erl\n# c(module).\n# module:function()."
+      },
+      {
+        "id": "erlang-10-e3",
+        "title": "Remote spawn",
+        "prompt": "Comment steps to spawn fun on remote node.",
+        "starterCode": "(* TODO *)\n",
+        "language": "erlang",
+        "hints": [
+          "spawn(Node, Fun)."
+        ],
+        "solution": "(* net_kernel:start, spawn('r@h', fun()->ok end) *)",
+        "runInstructions": "# erl\n# c(module).\n# module:function()."
+      },
+      {
+        "id": "erlang-10-e4",
+        "title": "Replication",
+        "prompt": "Put to two registered replicas — sketch message protocol.",
+        "starterCode": "put(Key, Val) ->\n  (* TODO *)\n.",
+        "language": "erlang",
+        "hints": [
+          "Cast to both.",
+          "Get from either."
+        ],
+        "solution": "put(K,V) -> [R ! {put,K,V} || R <- [store1, store2]], ok.",
         "runInstructions": "# erl\n# c(module).\n# module:function()."
       }
     ]
@@ -676,14 +833,6 @@ export const lessons: Lesson[] = [
     "summary": "Multi-process chat architecture: client, controller, server, group manager.",
     "labRefs": [
       "lab4-5"
-    ],
-    "content": "## IRC-lite architecture\n\nTypical layers:\n1. **Client** — user I/O\n2. **Chat controller** — session routing\n3. **Chat server** — channel state\n4. **Group manager** — membership\n\nProcesses exchange structured messages; names (`register`) stabilize addresses.\n\n## Exam angle\n\nRe-implement slices: echo with hidden process, counting server, or P2P channel propagation (Lab 4 ex. 5).",
-    "codeExamples": [
-      {
-        "title": "Registered echo",
-        "language": "erlang",
-        "code": "register(chat_server, spawn(fun server_loop/0))."
-      }
     ],
     "quiz": [
       {
@@ -702,28 +851,50 @@ export const lessons: Lesson[] = [
     "exercises": [
       {
         "id": "erlang-11-e1",
-        "title": "List processing",
-        "prompt": "Implement `sum/1` using recursion (no lists:sum).",
-        "starterCode": "sum(L) ->\n  % TODO\n.",
+        "title": "Client message",
+        "prompt": "Define record `#chat{user, text}` and send to server.",
+        "starterCode": "(* TODO types + send *)\n",
         "language": "erlang",
         "hints": [
-          "Base case empty list.",
-          "Head + sum of tail."
+          "Server receives {chat, From, Rec}."
         ],
-        "solution": "sum([]) -> 0;\nsum([H|T]) -> H + sum(T).",
+        "solution": "-record(chat, {user, text}).\nserver ! {chat, self(), #chat{user=u, text=t}}.",
         "runInstructions": "# erl\n# c(module).\n# module:function()."
       },
       {
         "id": "erlang-11-e2",
-        "title": "Guards",
-        "prompt": "Write `classify/1` returning atom positive, negative, or zero.",
-        "starterCode": "classify(N) when is_integer(N) ->\n  % TODO\n.",
+        "title": "Broadcast",
+        "prompt": "Server loop forwarding message to all Pids in list.",
+        "starterCode": "server_loop(Members) ->\n  receive\n    (* TODO *)\n  end.\n",
         "language": "erlang",
         "hints": [
-          "Use separate clauses with guards.",
-          "0 is its own case."
+          "lists:foreach to send."
         ],
-        "solution": "classify(N) when N > 0 -> positive;\nclassify(N) when N < 0 -> negative;\nclassify(0) -> zero.",
+        "solution": "server_loop(Ms) ->\n  receive\n    {chat, From, Msg} -> [P ! {msg, From, Msg} || P <- Ms, P =/= From], server_loop(Ms)\n  end.",
+        "runInstructions": "# erl\n# c(module).\n# module:function()."
+      },
+      {
+        "id": "erlang-11-e3",
+        "title": "Register",
+        "prompt": "Register chat server and join with `{join, self()}`.",
+        "starterCode": "(* TODO *)\n",
+        "language": "erlang",
+        "hints": [
+          "Stable name for clients."
+        ],
+        "solution": "register(chat_srv, spawn(fun() -> server_loop([]) end)).",
+        "runInstructions": "# erl\n# c(module).\n# module:function()."
+      },
+      {
+        "id": "erlang-11-e4",
+        "title": "Architecture",
+        "prompt": "List four process roles in IRC-lite in comments.",
+        "starterCode": "(* TODO *)\n",
+        "language": "erlang",
+        "hints": [
+          "Client, controller, server, group mgr."
+        ],
+        "solution": "(* client, chat_controller, chat_server, group_manager *)",
         "runInstructions": "# erl\n# c(module).\n# module:function()."
       }
     ]
@@ -738,14 +909,6 @@ export const lessons: Lesson[] = [
     "labRefs": [
       "lab5-1",
       "lab5-2"
-    ],
-    "content": "## Scala: scalable language\n\nRuns on JVM; mixes **OO** and **functional** styles. Everything is an object (no static primitives).\n\n```scala\nobject Hello {\n  def main(args: Array[String]): Unit =\n    println(\"Hello, world!\")\n}\n```\n\n## Case classes & Option\n\n```scala\ncase class Person(name: String, age: Int)\nsealed trait Option[+A]\ncase object None extends Option[Nothing]\ncase class Some[+A](value: A) extends Option[A]\n```\n\nAvoid `null` — use `Option`.\n\n## Methods vs functions\n\n`def` defines methods; eta-expansion turns them into functions: `list.map(inc _)`.",
-    "codeExamples": [
-      {
-        "title": "Case class + match",
-        "language": "scala",
-        "code": "sealed trait Expr\ncase class Num(n: Int) extends Expr\ncase class Add(a: Expr, b: Expr) extends Expr"
-      }
     ],
     "quiz": [
       {
@@ -764,28 +927,51 @@ export const lessons: Lesson[] = [
     "exercises": [
       {
         "id": "scala-12-e1",
-        "title": "Collections",
-        "prompt": "Implement `sum(nums: List[Int]): Int` without `.sum`.",
-        "starterCode": "def sum(nums: List[Int]): Int = {\n  // TODO\n}",
+        "title": "Case class",
+        "prompt": "Define `case class Point(x: Int, y: Int)` and `origin`.",
+        "starterCode": "case class Point(x: Int, y: Int)\nval origin = (* TODO *)\n",
         "language": "scala",
         "hints": [
-          "Use pattern matching on lists.",
-          "Tail recursion optional."
+          "Automatic apply/unapply."
         ],
-        "solution": "def sum(nums: List[Int]): Int = nums match {\n  case Nil => 0\n  case h :: t => h + sum(t)\n}",
+        "solution": "val origin = Point(0, 0)",
         "runInstructions": "# scala-cli run solution.scala\n# or: scalac Solution.scala && scala Solution"
       },
       {
         "id": "scala-12-e2",
         "title": "Option",
-        "prompt": "Write `firstPositive(nums: List[Int]): Option[Int]`.",
-        "starterCode": "def firstPositive(nums: List[Int]): Option[Int] = {\n  // TODO\n}",
+        "prompt": "Write `safeDiv(a: Int, b: Int): Option[Double]`.",
+        "starterCode": "def safeDiv(a: Int, b: Int): Option[Double] = ???\n",
         "language": "scala",
         "hints": [
-          "Return None if none positive.",
-          "Scan left to right."
+          "b=0 → None."
         ],
-        "solution": "def firstPositive(nums: List[Int]): Option[Int] =\n  nums.find(_ > 0)",
+        "solution": "def safeDiv(a: Int, b: Int): Option[Double] = if (b == 0) None else Some(a.toDouble / b)",
+        "runInstructions": "# scala-cli run solution.scala\n# or: scalac Solution.scala && scala Solution"
+      },
+      {
+        "id": "scala-12-e3",
+        "title": "Match expr",
+        "prompt": "Sealed `Expr` with Num and Add — eval with pattern match.",
+        "starterCode": "sealed trait Expr\ncase class Num(n: Int) extends Expr\ncase class Add(a: Expr, b: Expr) extends Expr\ndef eval: Expr => Int = ???\n",
+        "language": "scala",
+        "hints": [
+          "Recursive on Add."
+        ],
+        "solution": "def eval: Expr => Int = { case Num(n) => n; case Add(a,b) => eval(a)+eval(b) }",
+        "runInstructions": "# scala-cli run solution.scala\n# or: scalac Solution.scala && scala Solution"
+      },
+      {
+        "id": "scala-12-e4",
+        "title": "For-comprehension",
+        "prompt": "Rewrite `for (x <- List(1,2); y <- List(10)) yield x+y`.",
+        "starterCode": "val r = (* TODO *)\n",
+        "language": "scala",
+        "hints": [
+          "Cartesian product.",
+          "Result length 2."
+        ],
+        "solution": "val r = List(1,2).flatMap(x => List(10).map(y => x+y))",
         "runInstructions": "# scala-cli run solution.scala\n# or: scalac Solution.scala && scala Solution"
       }
     ]
@@ -799,14 +985,6 @@ export const lessons: Lesson[] = [
     "summary": "Mixin composition, observer pattern, stackable traits, and trait construction.",
     "labRefs": [
       "lab5-8"
-    ],
-    "content": "## Traits as mixins\n\n```scala\ntrait Logging { self =>\n  def log(msg: String): Unit = println(s\"[log] $msg\")\n}\n\nclass Service extends Logging {\n  def run(): Unit = log(\"running\")\n}\n```\n\n## Stackable traits\n\nOrder matters: `new Service with Audit with Metrics` — each trait wraps behavior.\n\n## Observer pattern\n\nSubjects notify registered observers — classic exam trait composition question.",
-    "codeExamples": [
-      {
-        "title": "Stackable trait",
-        "language": "scala",
-        "code": "trait Core { def work: String = \"core\" }\ntrait Decor extends Core { override def work = super.work + \"+decor\" }"
-      }
     ],
     "quiz": [
       {
@@ -825,28 +1003,50 @@ export const lessons: Lesson[] = [
     "exercises": [
       {
         "id": "scala-13-e1",
-        "title": "Collections",
-        "prompt": "Implement `sum(nums: List[Int]): Int` without `.sum`.",
-        "starterCode": "def sum(nums: List[Int]): Int = {\n  // TODO\n}",
+        "title": "Trait mixin",
+        "prompt": "Trait `Timestamped` overriding `toString` with prefix.",
+        "starterCode": "trait Timestamped { self =>\n  abstract override def toString: String = s\"[@${System.currentTimeMillis}] ${super.toString}\"\n}\n",
         "language": "scala",
         "hints": [
-          "Use pattern matching on lists.",
-          "Tail recursion optional."
+          "Need parent with toString."
         ],
-        "solution": "def sum(nums: List[Int]): Int = nums match {\n  case Nil => 0\n  case h :: t => h + sum(t)\n}",
+        "solution": "class Item(val n: Int) extends AnyRef { override def toString = s\"Item($n)\" }",
         "runInstructions": "# scala-cli run solution.scala\n# or: scalac Solution.scala && scala Solution"
       },
       {
         "id": "scala-13-e2",
-        "title": "Option",
-        "prompt": "Write `firstPositive(nums: List[Int]): Option[Int]`.",
-        "starterCode": "def firstPositive(nums: List[Int]): Option[Int] = {\n  // TODO\n}",
+        "title": "Stackable",
+        "prompt": "Order `new Core with Audit with Log` — which `start()` runs?",
+        "starterCode": "(* comment *)\n",
         "language": "scala",
         "hints": [
-          "Return None if none positive.",
-          "Scan left to right."
+          "Linearization rightmost first."
         ],
-        "solution": "def firstPositive(nums: List[Int]): Option[Int] =\n  nums.find(_ > 0)",
+        "solution": "(* Log.start calls super → Audit → Core *)",
+        "runInstructions": "# scala-cli run solution.scala\n# or: scalac Solution.scala && scala Solution"
+      },
+      {
+        "id": "scala-13-e3",
+        "title": "Observer",
+        "prompt": "Sketch `Subject` with `attach` and `notify`.",
+        "starterCode": "trait Observer { def update(): Unit }\nclass Subject {\n  // TODO\n}\n",
+        "language": "scala",
+        "hints": [
+          "List of observers."
+        ],
+        "solution": "private var obs = List.empty[Observer]\ndef attach(o: Observer) = obs = o :: obs\ndef notify() = obs.foreach(_.update())",
+        "runInstructions": "# scala-cli run solution.scala\n# or: scalac Solution.scala && scala Solution"
+      },
+      {
+        "id": "scala-13-e4",
+        "title": "vs Java interface",
+        "prompt": "One sentence: Scala trait with concrete method vs Java 8 default.",
+        "starterCode": "(* TODO *)\n",
+        "language": "scala",
+        "hints": [
+          "Linearization vs single inheritance."
+        ],
+        "solution": "(* Scala resolves diamond with linearization; Java class wins over interface default *)",
         "runInstructions": "# scala-cli run solution.scala\n# or: scalac Solution.scala && scala Solution"
       }
     ]
@@ -860,14 +1060,6 @@ export const lessons: Lesson[] = [
     "summary": "override, linearization algorithm (C3), abstract type members, companion objects.",
     "labRefs": [
       "lab5-7"
-    ],
-    "content": "## Linearization (algoritmo di linearizzazione)\n\nScala resolves **diamond inheritance** with C3 linearization. Method lookup follows the linear order.\n\n```scala\ntrait A { def greet = \"A\" }\ntrait B extends A { override def greet = \"B\" }\ntrait C extends A { override def greet = \"C\" }\nclass D extends B with C  // greet from C (rightmost wins among traits)\n```\n\n## `override` keyword\n\nRequired when overriding concrete members. **Abstract type members** can be refined in subclasses.\n\n## Companion objects\n\nSame name as class — factory methods and implicit scope:\n\n```scala\nobject Matrix { def zeros(rows: Int, cols: Int): Matrix = ??? }\n```",
-    "codeExamples": [
-      {
-        "title": "Linearization demo",
-        "language": "scala",
-        "code": "class Z extends X with Y  // method resolution follows linearization order"
-      }
     ],
     "quiz": [
       {
@@ -886,28 +1078,50 @@ export const lessons: Lesson[] = [
     "exercises": [
       {
         "id": "scala-14-e1",
-        "title": "Collections",
-        "prompt": "Implement `sum(nums: List[Int]): Int` without `.sum`.",
-        "starterCode": "def sum(nums: List[Int]): Int = {\n  // TODO\n}",
+        "title": "Linearization",
+        "prompt": "Predict `greet` for `class D extends A with B with C` each defining greet.",
+        "starterCode": "(* TODO *)\n",
         "language": "scala",
         "hints": [
-          "Use pattern matching on lists.",
-          "Tail recursion optional."
+          "Rightmost trait wins."
         ],
-        "solution": "def sum(nums: List[Int]): Int = nums match {\n  case Nil => 0\n  case h :: t => h + sum(t)\n}",
+        "solution": "(* C.greet if all override same *)",
         "runInstructions": "# scala-cli run solution.scala\n# or: scalac Solution.scala && scala Solution"
       },
       {
         "id": "scala-14-e2",
-        "title": "Option",
-        "prompt": "Write `firstPositive(nums: List[Int]): Option[Int]`.",
-        "starterCode": "def firstPositive(nums: List[Int]): Option[Int] = {\n  // TODO\n}",
+        "title": "override",
+        "prompt": "Add `override` to fix compile error in trait stack.",
+        "starterCode": "trait A { def n = 1 }\ntrait B extends A { override def n = 2 }\n",
         "language": "scala",
         "hints": [
-          "Return None if none positive.",
-          "Scan left to right."
+          "Concrete override needs keyword."
         ],
-        "solution": "def firstPositive(nums: List[Int]): Option[Int] =\n  nums.find(_ > 0)",
+        "solution": "trait B extends A { override def n = 2 }",
+        "runInstructions": "# scala-cli run solution.scala\n# or: scalac Solution.scala && scala Solution"
+      },
+      {
+        "id": "scala-14-e3",
+        "title": "Companion",
+        "prompt": "Object `Matrix` factory `zeros(rows, cols)`.",
+        "starterCode": "class Matrix private (val rows: Int, val cols: Int)\nobject Matrix {\n  def zeros(r: Int, c: Int): Matrix = ???\n}\n",
+        "language": "scala",
+        "hints": [
+          "Private ctor + factory on companion."
+        ],
+        "solution": "def zeros(r: Int, c: Int) = new Matrix(r, c)",
+        "runInstructions": "# scala-cli run solution.scala\n# or: scalac Solution.scala && scala Solution"
+      },
+      {
+        "id": "scala-14-e4",
+        "title": "Abstract type",
+        "prompt": "Trait with `type Elem` and `def zero: Elem`.",
+        "starterCode": "trait Monoid {\n  type Elem\n  def zero: Elem\n  def combine(a: Elem, b: Elem): Elem\n}\n",
+        "language": "scala",
+        "hints": [
+          "Hide concrete type."
+        ],
+        "solution": "object IntAdd extends Monoid { type Elem = Int; def zero = 0; def combine(a,b)=a+b }",
         "runInstructions": "# scala-cli run solution.scala\n# or: scalac Solution.scala && scala Solution"
       }
     ]
@@ -921,14 +1135,6 @@ export const lessons: Lesson[] = [
     "summary": "Internal vs external DSLs, embedded DSLs, and fluent APIs in Scala.",
     "labRefs": [
       "lab6-1"
-    ],
-    "content": "## Internal vs external DSL\n\n- **Internal**: embedded in host language (Scala) — type-checked, IDE support\n- **External**: separate grammar parsed by combinator or parser generator\n\n## Embedded DSL techniques\n\n- Implicit conversions (use sparingly)\n- By-name parameters\n- Infix methods for readability\n\n```scala\ncase class Money(amount: BigDecimal) {\n  def +(other: Money): Money = Money(amount + other.amount)\n}\n```\n\nLab 6 calculator DSL extends expressions with variables and assignment.",
-    "codeExamples": [
-      {
-        "title": "Fluent DSL",
-        "language": "scala",
-        "code": "class Grid { def row(values: Int*): Grid = this; def build(): Unit = () }"
-      }
     ],
     "quiz": [
       {
@@ -947,28 +1153,50 @@ export const lessons: Lesson[] = [
     "exercises": [
       {
         "id": "scala-15-e1",
-        "title": "Collections",
-        "prompt": "Implement `sum(nums: List[Int]): Int` without `.sum`.",
-        "starterCode": "def sum(nums: List[Int]): Int = {\n  // TODO\n}",
+        "title": "Fluent builder",
+        "prompt": "Method chaining `grid.row(1,2).row(3,4).build()`.",
+        "starterCode": "class Grid { def row(ns: Int*): Grid = this; def build(): Unit = () }\n",
         "language": "scala",
         "hints": [
-          "Use pattern matching on lists.",
-          "Tail recursion optional."
+          "Return this."
         ],
-        "solution": "def sum(nums: List[Int]): Int = nums match {\n  case Nil => 0\n  case h :: t => h + sum(t)\n}",
+        "solution": "class Grid { def row(ns: Int*): Grid = { /* add */ this }; def build() = () }",
         "runInstructions": "# scala-cli run solution.scala\n# or: scalac Solution.scala && scala Solution"
       },
       {
         "id": "scala-15-e2",
-        "title": "Option",
-        "prompt": "Write `firstPositive(nums: List[Int]): Option[Int]`.",
-        "starterCode": "def firstPositive(nums: List[Int]): Option[Int] = {\n  // TODO\n}",
+        "title": "Implicit (sketch)",
+        "prompt": "Comment when implicit conversion helps DSL syntax.",
+        "starterCode": "(* TODO *)\n",
         "language": "scala",
         "hints": [
-          "Return None if none positive.",
-          "Scan left to right."
+          "Wrap Int in Lit(_)."
         ],
-        "solution": "def firstPositive(nums: List[Int]): Option[Int] =\n  nums.find(_ > 0)",
+        "solution": "(* implicit def intToLit(n:Int)=Lit(n) enables 1 + 2 in DSL *)",
+        "runInstructions": "# scala-cli run solution.scala\n# or: scalac Solution.scala && scala Solution"
+      },
+      {
+        "id": "scala-15-e3",
+        "title": "Internal vs external",
+        "prompt": "Compare SQL string DSL vs Scala-embedded payroll DSL.",
+        "starterCode": "(* TODO *)\n",
+        "language": "scala",
+        "hints": [
+          "Internal = typechecked host syntax."
+        ],
+        "solution": "(* external parsed at runtime; internal uses Scala types *)",
+        "runInstructions": "# scala-cli run solution.scala\n# or: scalac Solution.scala && scala Solution"
+      },
+      {
+        "id": "scala-15-e4",
+        "title": "By-name",
+        "prompt": "Use by-name param for `repeat(n)(body)`.",
+        "starterCode": "def repeat(n: Int)(body: => Unit): Unit = ???\n",
+        "language": "scala",
+        "hints": [
+          "Evaluate body each iteration."
+        ],
+        "solution": "def repeat(n: Int)(body: => Unit) = for (_ <- 1 to n) body",
         "runInstructions": "# scala-cli run solution.scala\n# or: scalac Solution.scala && scala Solution"
       }
     ]
@@ -983,14 +1211,6 @@ export const lessons: Lesson[] = [
     "labRefs": [
       "lab6-2",
       "lab6-4"
-    ],
-    "content": "## Parser combinators (combinatori di parser)\n\nBuilt from small parsers combined with `flatMap`, `map`, `| |`:\n\n```scala\nimport scala.util.parsing.combinator._\n\nobject ExprParser extends RegexParsers {\n  def number: Parser[Int] = \"\"\"\\d+\"\"\".r ^^ (_.toInt)\n  def expr: Parser[Int] = number\n}\n```\n\n## Pipeline\n\n1. Define grammar\n2. Parse input → AST\n3. Evaluate AST (semantics)\n\nPayroll DSL from lectures: parse lines, compute wages, print results.",
-    "codeExamples": [
-      {
-        "title": "Combinator chain",
-        "language": "scala",
-        "code": "def token: Parser[String] = \"\"\"\\w+\"\"\".r\ndef phrase: Parser[List[String]] = rep(token)"
-      }
     ],
     "quiz": [
       {
@@ -1009,28 +1229,50 @@ export const lessons: Lesson[] = [
     "exercises": [
       {
         "id": "scala-16-e1",
-        "title": "Collections",
-        "prompt": "Implement `sum(nums: List[Int]): Int` without `.sum`.",
-        "starterCode": "def sum(nums: List[Int]): Int = {\n  // TODO\n}",
+        "title": "Regex parser",
+        "prompt": "Parser `digits` for one or more digits as Int.",
+        "starterCode": "import scala.util.parsing.combinator._\nobject P extends RegexParsers {\n  def digits: Parser[Int] = ???\n}\n",
         "language": "scala",
         "hints": [
-          "Use pattern matching on lists.",
-          "Tail recursion optional."
+          "\"\"\"\\d+\"\"\".r ^^ (_.toInt)"
         ],
-        "solution": "def sum(nums: List[Int]): Int = nums match {\n  case Nil => 0\n  case h :: t => h + sum(t)\n}",
+        "solution": "def digits: Parser[Int] = \"\"\"\\d+\"\"\".r ^^ (_.toInt)",
         "runInstructions": "# scala-cli run solution.scala\n# or: scalac Solution.scala && scala Solution"
       },
       {
         "id": "scala-16-e2",
-        "title": "Option",
-        "prompt": "Write `firstPositive(nums: List[Int]): Option[Int]`.",
-        "starterCode": "def firstPositive(nums: List[Int]): Option[Int] = {\n  // TODO\n}",
+        "title": "Sequence",
+        "prompt": "Parse two ints separated by comma: `pair`.",
+        "starterCode": "def pair: Parser[(Int,Int)] = ???\n",
         "language": "scala",
         "hints": [
-          "Return None if none positive.",
-          "Scan left to right."
+          "Use ~ operator."
         ],
-        "solution": "def firstPositive(nums: List[Int]): Option[Int] =\n  nums.find(_ > 0)",
+        "solution": "def pair: Parser[(Int,Int)] = digits ~ \",\" ~ digits ^^ { case a ~ _ ~ b => (a,b) }",
+        "runInstructions": "# scala-cli run solution.scala\n# or: scalac Solution.scala && scala Solution"
+      },
+      {
+        "id": "scala-16-e3",
+        "title": "Eval AST",
+        "prompt": "Given `sealed trait E; case class Num(n:Int); case class Add(a:E,b:E)`, write eval.",
+        "starterCode": "def eval(e: E): Int = ???\n",
+        "language": "scala",
+        "hints": [
+          "Match like OCaml."
+        ],
+        "solution": "def eval(e: E): Int = e match { case Num(n)=>n; case Add(a,b)=>eval(a)+eval(b) }",
+        "runInstructions": "# scala-cli run solution.scala\n# or: scalac Solution.scala && scala Solution"
+      },
+      {
+        "id": "scala-16-e4",
+        "title": "Payroll line",
+        "prompt": "Sketch grammar for `name = expr` assignment line.",
+        "starterCode": "def stmt: Parser[???] = ???\n",
+        "language": "scala",
+        "hints": [
+          "ident ~ \"=\" ~ expr."
+        ],
+        "solution": "def ident: Parser[String] = \"\"\"\\w+\"\"\".r",
         "runInstructions": "# scala-cli run solution.scala\n# or: scalac Solution.scala && scala Solution"
       }
     ]

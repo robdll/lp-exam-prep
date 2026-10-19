@@ -26,8 +26,8 @@ export type Lesson = {
   title: string;
   italianTitle?: string;
   summary: string;
-  content: string;
-  codeExamples: { title: string; language: Language; code: string }[];
+  /** Lesson body lives in content/lessons/{id}.md — omitted from generated bundle. */
+  content?: string;
   quiz: QuizQuestion[];
   exercises: CodingExercise[];
   labRefs?: string[];

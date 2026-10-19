@@ -46,3 +46,14 @@ body {
   color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
+
+/* Shiki dual themes (github-light / github-dark) */
+.shiki-wrap .shiki,
+.shiki-wrap .shiki span {
+  color: var(--shiki-light);
+  background-color: transparent;
+}
+.dark .shiki-wrap .shiki,
+.dark .shiki-wrap .shiki span {
+  color: var(--shiki-dark);
+}
