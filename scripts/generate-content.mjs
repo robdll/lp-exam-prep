@@ -1,12 +1,16 @@
 /**
- * Generates lesson, lab, and mock-exam TypeScript modules.
+ * Generates lesson metadata, quizzes, exercises, labs, and mock exams.
+ * Lesson bodies live in content/lessons/{id}.md — run after editing markdown.
  * Run: node scripts/generate-content.mjs
  */
 import fs from "fs";
 import path from "path";
+import { exercisesByLesson } from "./lesson-exercises.mjs";
 
 const outDir = path.join(process.cwd(), "src/data/generated");
+const lessonMdDir = path.join(process.cwd(), "content/lessons");
 fs.mkdirSync(outDir, { recursive: true });
+fs.mkdirSync(lessonMdDir, { recursive: true });
 
 const runOcaml = `# utop or ocaml
 # Paste your solution, or: ocamlc -o prog main.ml && ./prog`;
@@ -174,7 +178,8 @@ const lessonMeta = [
   },
 ];
 
-const lessonBodies = {
+/** @deprecated bodies moved to content/lessons/*.md — kept empty for reference during migration */
+const _legacyLessonBodies = {
   "ocaml-01": `## Why functional programming?
 
 In **programmazione funzionale**, functions are **first-class**: they can be passed, returned, and stored like any value. Control flow relies heavily on **recursion** (ricorsione) instead of mutable loops. Many FP languages discourage **side effects** (effetti collaterali): prefer expressions over statements.
@@ -964,14 +969,19 @@ classify(0) -> zero.`,
   return templates[track];
 }
 
+for (const meta of lessonMeta) {
+  const mdPath = path.join(lessonMdDir, `${meta.id}.md`);
+  if (!fs.existsSync(mdPath)) {
+    console.warn(`Warning: missing ${mdPath} — add markdown before release.`);
+  }
+}
+
 const lessons = lessonMeta.map((meta) => ({
   ...meta,
-  content: lessonBodies[meta.id] || meta.summary,
-  codeExamples: codeExamples[meta.id] || [],
   quiz: quizzes[meta.id] || [
-    quiz(`${meta.id}-q1`, `Review: ${meta.title}?`, ["Yes", "Partially", "Need slides", "No"], 0, "Re-read the lesson summary and code examples."),
+    quiz(`${meta.id}-q1`, `Review: ${meta.title}?`, ["Yes", "Partially", "Need slides", "No"], 0, "Re-read the lesson and drills."),
   ],
-  exercises: defaultExercises(meta.id, meta.track),
+  exercises: exercisesByLesson[meta.id] ?? defaultExercises(meta.id, meta.track),
 }));
 
 // Lab problems from course sheets

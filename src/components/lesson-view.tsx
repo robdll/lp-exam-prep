@@ -1,95 +1,108 @@
 "use client";
 
 import Link from "next/link";
-import { MarkdownContent } from "./markdown-content";
 import { QuizBlock } from "./quiz-block";
 import { ExerciseBlock } from "./exercise-block";
-import { CodeEditor } from "./code-editor";
+import { LessonToc } from "./lesson-toc";
 import { markLessonComplete } from "@/lib/progress";
 import type { Lesson } from "@/lib/types";
+import type { TocHeading } from "@/lib/lesson-markdown";
 import { formatTrack } from "@/lib/utils";
 
 export function LessonView({
   lesson,
   prevId,
   nextId,
+  headings,
+  children,
 }: {
-  lesson: Lesson;
+  lesson: Omit<Lesson, "content">;
   prevId?: string;
   nextId?: string;
+  headings: TocHeading[];
+  children: React.ReactNode;
 }) {
   return (
-    <div className="mx-auto max-w-3xl space-y-8 px-4 py-8">
-      <div className="space-y-2">
-        <p className="text-sm text-muted-foreground">
-          {formatTrack(lesson.track)} · Lesson {lesson.number}
-          {lesson.italianTitle ? ` · ${lesson.italianTitle}` : ""}
-        </p>
-        <h1 className="text-3xl font-bold tracking-tight">{lesson.title}</h1>
-        <p className="text-muted-foreground">{lesson.summary}</p>
-        <button
-          type="button"
-          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
-          onClick={() => markLessonComplete(lesson.id)}
-        >
-          Mark lesson complete
-        </button>
-      </div>
+    <div className="mx-auto max-w-6xl px-4 py-8 lg:py-10">
+      <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_13rem] lg:gap-10 xl:grid-cols-[minmax(0,1fr)_15rem] xl:gap-12">
+        <div className="min-w-0 space-y-10">
+          <header className="space-y-3 border-b border-border pb-8">
+            <p className="text-sm text-muted-foreground">
+              Lesson {lesson.number} · {formatTrack(lesson.track)}
+              {lesson.italianTitle ? ` · ${lesson.italianTitle}` : ""}
+            </p>
+            <h1 className="text-3xl font-bold tracking-tight md:text-4xl">{lesson.title}</h1>
+            <p className="max-w-2xl text-lg leading-relaxed text-muted-foreground">{lesson.summary}</p>
+            <button
+              type="button"
+              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+              onClick={() => markLessonComplete(lesson.id)}
+            >
+              Mark lesson complete
+            </button>
+          </header>
 
-      <MarkdownContent content={lesson.content} />
+          <div className="max-w-3xl">{children}</div>
 
-      {lesson.codeExamples.length > 0 && (
-        <section className="space-y-4">
-          <h2 className="text-lg font-semibold">Code examples</h2>
-          {lesson.codeExamples.map((ex) => (
-            <div key={ex.title}>
-              <p className="mb-2 text-sm font-medium">{ex.title}</p>
-              <CodeEditor language={ex.language} value={ex.code} readOnly height={160} />
-            </div>
-          ))}
-        </section>
-      )}
+          <QuizBlock lessonId={lesson.id} questions={lesson.quiz} />
 
-      <QuizBlock lessonId={lesson.id} questions={lesson.quiz} />
-
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold">Exam-style exercises</h2>
-        {lesson.exercises.map((ex) => (
-          <ExerciseBlock key={ex.id} exercise={ex} />
-        ))}
-      </section>
-
-      {lesson.labRefs && lesson.labRefs.length > 0 && (
-        <section className="rounded-xl border border-border bg-muted/30 p-4">
-          <h2 className="font-semibold">Related lab problems</h2>
-          <ul className="mt-2 list-inside list-disc text-sm">
-            {lesson.labRefs.map((id) => (
-              <li key={id}>
-                <Link href={`/labs/${id}`} className="text-primary underline-offset-2 hover:underline">
-                  {id}
-                </Link>
-              </li>
+          <section className="max-w-3xl space-y-4">
+            <h2 className="text-xl font-semibold tracking-tight">Exam-style drills</h2>
+            <p className="text-sm text-muted-foreground">
+              Write solutions in the editor, then compare with the reference. These mirror the kind of small
+              programs the written exam expects.
+            </p>
+            {lesson.exercises.map((ex) => (
+              <ExerciseBlock key={ex.id} exercise={ex} />
             ))}
-          </ul>
-        </section>
-      )}
+          </section>
 
-      <nav className="flex justify-between border-t border-border pt-6 text-sm">
-        {prevId ? (
-          <Link href={`/learn/${lesson.track}/${prevId}`} className="text-primary hover:underline">
-            ← Previous
-          </Link>
-        ) : (
-          <span />
-        )}
-        {nextId ? (
-          <Link href={`/learn/${lesson.track}/${nextId}`} className="text-primary hover:underline">
-            Next →
-          </Link>
-        ) : (
-          <span />
-        )}
-      </nav>
+          {lesson.labRefs && lesson.labRefs.length > 0 && (
+            <section className="max-w-3xl rounded-xl border border-border bg-muted/30 p-5">
+              <h2 className="font-semibold">Related lab problems</h2>
+              <ul className="mt-2 list-inside list-disc text-sm">
+                {lesson.labRefs.map((id) => (
+                  <li key={id}>
+                    <Link
+                      href={`/labs/${id}`}
+                      className="text-primary underline-offset-2 hover:underline"
+                    >
+                      {id}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          <nav className="flex flex-wrap justify-between gap-4 border-t border-border pt-8 text-sm">
+            {prevId ? (
+              <Link
+                href={`/learn/${lesson.track}/${prevId}`}
+                className="font-medium text-primary hover:underline"
+              >
+                ← Previous lesson
+              </Link>
+            ) : (
+              <span />
+            )}
+            {nextId ? (
+              <Link
+                href={`/learn/${lesson.track}/${nextId}`}
+                className="font-medium text-primary hover:underline"
+              >
+                Next lesson →
+              </Link>
+            ) : (
+              <span />
+            )}
+          </nav>
+        </div>
+
+        <aside className="hidden lg:block">
+          <LessonToc headings={headings} />
+        </aside>
+      </div>
     </div>
   );
 }
